@@ -12,9 +12,9 @@ function NavBar({priorityFilter, filterByPriority, dueDateFilter, filterByDueDat
     onChange={(e)=> filterByDueDate(e.target.value)}
     > 
       <option value="">All</option>     
-      <option value="Today">Today</option>
-      <option value="Tomorrow">Tomorrow</option>
+      <option value="Now">Now</option>
       <option value="Later">Later</option>
+      <option value="Whenever">Whenever</option>
   </select>
 
   <label className='pl-4 pr-2 text-gray-100 font-semibold '>Priority</label>

@@ -1,18 +1,18 @@
 import React,{useEffect, useState} from "react";
-import ItemList from "./components/ItemList";
+import TaskList from "./components/TaskList";
 import NavBar from "./components/NavBar";
 
 function App() {
 
-  const [items, setItems] = useState([])
+  const [tasks, setTasks] = useState([])
   const [priorityFilter, setPriorityFilter] = useState("")
   const [dueDateFilter, setdueDateFilter] = useState("")
 
   useEffect(() => {
     fetch("http://localhost:3000/items/")
     .then(response => response.json())
-    .then(data => setItems(data))
-  }, [])
+    .then(data => setTasks(data))
+  }, [tasks])
 
   function handleAddItem(item)
   {
@@ -24,17 +24,39 @@ function App() {
      
      fetch('http://localhost:3000/items', configObj)
       .then(res => res.json())
-      .then(data =>  setItems([...items, data]))
+      .then(data =>  setTasks([...tasks, data]))
   }
 
-  function handleRemoveItem(id) 
+  function handleCompleteTask(id) 
   {
-    console.log(handleRemoveItem)
-    const nonRemovedItems = items.filter((item) => item.id !== id)
-    setItems(nonRemovedItems)
+    console.log('handleCompleteTask')
   }
 
-  const filterItems = items.filter((item) =>
+  function handleRemoveTask(id) 
+  {
+    console.log("handleRemoveTask")
+
+    const configObj = {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+     }
+
+     fetch(`http://localhost:3000/items/${id}`, configObj)
+  }
+
+  function handleEditTask(id, dueDate, description, priority) {
+    const configObj = {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({'dueDate': dueDate, 'description' :description, 'priority' : priority})
+     }
+
+    fetch(`http://localhost:3000/items/${id}`, configObj)
+    .then(res => res.json())
+    .then(data =>  setTasks([...tasks, data]))
+  }
+
+  const filterTasks = tasks.filter((item) =>
   {
       if (priorityFilter === "")
         return true
@@ -58,9 +80,11 @@ function App() {
       filterByDueDate={setdueDateFilter}
       />
 
-      <ItemList 
-            items={filterItems} 
-            removeItem={handleRemoveItem}       
+      <TaskList 
+            tasks={filterTasks} 
+            completeTask={handleCompleteTask}
+            removeTask={handleRemoveTask}    
+            editTask={handleEditTask}   
       />
     </div>
   );

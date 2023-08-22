@@ -3,7 +3,7 @@ import { BsCheckCircle, BsCheckCircleFill, BsTrash, BsTrashFill } from "react-ic
 import {motion} from 'framer-motion';
 import {textPriorityColor, bgPriorityColor,iconPriorityColor} from "./color_info"
 
-export default class Item extends Component {
+export default class Task extends Component {
     constructor(props) {
         super(props)
     
@@ -15,7 +15,8 @@ export default class Item extends Component {
             description: this.props.itemData.description
         };
 
-        this.OnComplete = this.OnComplete.bind(this);
+        this.onComplete = this.onComplete.bind(this);
+        this.onRemove = this.onRemove.bind(this);
         this.wrapperRef = React.createRef();
         this.handleClickOutside = this.handleClickOutside.bind(this);
     }
@@ -30,20 +31,30 @@ export default class Item extends Component {
       }
 
       handleClickOutside(event) {
-        if (this.wrapperRef && !this.wrapperRef.current.contains(event.target)) {
-            this.setState({ editMode: false});
+        if (this.wrapperRef && !this.wrapperRef.current.contains(event.target) && this.state.editMode) {
+            this.editTask();
         }
       }
 
-    OnComplete(latest) 
+    editTask() {
+        this.setState({ editMode: false});
+        this.props.editTask(this.props.itemData.id, this.state.dueDate, this.state.description, this.state.priority)
+    }
+
+    onComplete(latest) 
     {
         if (latest.scale === 0)
         {
-            this.props.removeItem(this.props.itemData.id)
+            this.props.completeTask(this.props.itemData.id)
         }       
     }
 
-      render() {
+    onRemove()
+    {
+        this.props.removeTask(this.props.itemData.id)
+    }
+
+    render() {
         return(
             <motion.div 
             layout
@@ -58,27 +69,34 @@ export default class Item extends Component {
                 layout: { duration: 0.15,  delay: 0.125, type: "spring", stiffness: 400, damping: 17}
             }}
 
-            onAnimationComplete={this.OnComplete}
+            onAnimationComplete={this.onComplete}
             className='flex justify-center items-center'>
                 <div>
                     <div 
                     className={textPriorityColor(this.state.priority) + bgPriorityColor(this.state.priority) + 'transition-transform duration-200 w-80 shadow-md shadow-black/30 px-4 py-1 h-20 rounded-2xl grid grid-flow-col'}>
                         
                         <div 
-                            className='my-auto w-15'
-                            onClick={() => this.setState({ editMode: true})}
-                            ref={this.wrapperRef}>
+                        className='my-auto w-full'
+                        onClick={() => this.setState({ editMode: true})}
+                        ref={this.wrapperRef}>
+
                             {!this.state.editMode &&
                             <div>
-                            <h1 className='text-sm font-semibold'>{this.state.dueDate}</h1>
-                            <h1 className='h-flex w-full  text-xl font-bold'>{this.state.description}</h1>
+                                <h1 className='text-sm font-semibold'>{this.state.dueDate}</h1>
+                                <h1 className='h-flex w-full text-xl font-bold'>{this.state.description}</h1>
                             </div>}
 
+                        {/* ==== EditMode Tasks ==== */}
+
                             {this.state.editMode &&
-                            <div>
-                                <form>
+                            <div className='w-full flex'>
+                                <form 
+                                className='grid grid-flow-row gap-1'
+                                onSubmit={(e) => {
+                                    e.preventDefault()
+                                    this.editTask()}}>
                                     <select 
-                                    className = "rounded-3xl px-1"
+                                    className = "text-sm font-semibold rounded-3xl px-1 mr-auto"
                                     defaultValue={this.state.dueDate}
                                     onChange={(e)=> this.setState({ dueDate: e.target.value})}> 
                                         <option value="Now">Now</option>
@@ -87,26 +105,34 @@ export default class Item extends Component {
                                     </select>
 
                                     <input 
+                                    className = "text-xl font-bold mr-auto"
                                     type="text" 
-                                    defaultValue={this.props.itemData.description} 
+                                    defaultValue={this.state.description} 
                                     onChange={(e)=> this.setState({ description: e.target.value})}/>
 
-                                    <select className = "rounded-3xl px-1"
-                                    defaultValue={this.props.itemData.priority}
+                                    <select className = "text-sm font-semibold rounded-3xl px-1 mr-auto"
+                                    defaultValue={this.state.priority}
                                     onChange={(e)=> this.setState({ priority: e.target.value})}> 
                                         <option value="Low">Low</option>
                                         <option value="Medium">Medium</option>
                                         <option value="High">High</option>
                                     </select>
                                 </form>
+
+                                <motion.button 
+                                onClick={this.onRemove}
+                                whileHover={{ scale: 1.33 }}
+                                whileTap={{ scale: 0.5 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                                className={iconPriorityColor(this.state.priority) + "ml-auto"}>
+                                    {<BsTrash size={35}/>}
+                                </motion.button>
                             </div>}
 
                         </div>
-
-                        {/* ==== Button Icons ==== */}
                         
-                        <div className='relative'>
                         {!this.state.editMode &&
+                        <div className='relative'>                     
                             <motion.button 
                                 onClick={() =>  this.setState({ complete: true })}
                                 whileHover={{ scale: 1.33 }}
@@ -115,21 +141,9 @@ export default class Item extends Component {
                                 className={iconPriorityColor(this.state.priority) + 'absolute right-0 top-0 bottom-0'}
                             >
                                 {this.state.complete ? <BsCheckCircleFill size={35}/> : <BsCheckCircle size={35}/>}
-                            </motion.button>}
-                            
-                            {this.state.editMode &&
-                            <motion.button 
-                                onClick={() =>  this.setState({ complete: true })}
-                                whileHover={{ scale: 1.33 }}
-                                whileTap={{ scale: 0.5 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                                className={iconPriorityColor(this.state.priority) + 'absolute right-0 top-0 bottom-0'}
-                            >
-                                {<BsTrash size={35}/>}
                             </motion.button>
-                            }
+                        </div>}
 
-                        </div>
                     </div>
                 </div>
             </motion.div>

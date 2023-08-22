@@ -29,6 +29,7 @@ function App() {
 
   function handleRemoveItem(id) 
   {
+    console.log(handleRemoveItem)
     const nonRemovedItems = items.filter((item) => item.id !== id)
     setItems(nonRemovedItems)
   }

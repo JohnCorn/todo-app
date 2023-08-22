@@ -1,8 +1,7 @@
 import React from 'react'
 import Item from './Item'
 
-function ItemList({items, removeItem}) 
-{
+function ItemList({items, removeItem}) {
 
   return (
     <div className='w-full mx-auto'>
